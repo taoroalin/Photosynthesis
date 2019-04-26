@@ -122,8 +122,9 @@ module.exports.makeGame = function (players) {
         this.getTile(source).lastUsedTurn = this.state.turnNumber;
         this.getTile(target).lastUsedBy = player;
         this.getTile(target).lastUsedTurn = this.state.turnNumber;
-        this.state[target].treeLevel = 0;
-        this.state[target].player = player;
+        this.getTile(target).treeLevel = 0;
+        this.getTile(target).player = player;
+        this.state.players[player].available[0] -= 1;
     };
 
     game.canUpgrade = function (player, source) {
@@ -140,6 +141,8 @@ module.exports.makeGame = function (players) {
         this.state.players[player].changeSun(-costs[this.getTile(source).treeLevel]);
         this.getTile(source).lastUsedTurn = this.state.turnNumber;
         this.getTile(source).treeLevel += 1;
+        this.state.players[player].available[this.getTile(source).treeLevel] -= 1;
+        this.state.players[player].store[this.getTile(source).treeLevel - 1] += 1;
     };
 
     game.canPurchase = function (player, item) {
@@ -154,6 +157,7 @@ module.exports.makeGame = function (players) {
         var costToBuy = this.config.costToBuy;
         this.state.players[player].changeSun(-costToBuy[item]);
         this.state.players[player].available[item] += 1;
+        this.state.players[player].store[item] -= 1;
         this.state.players[player].playerBoard[item] -= 1;
     };
 
@@ -175,6 +179,7 @@ module.exports.makeGame = function (players) {
         this.state.players[player].playerBoard[3] += 1;
         this.state.players[player].changeSun(-costToRetire);
         this.state.players[player].points += this.state.yields[this.getTile(source).leaves].pop();
+        this.state.players[player].store[3] += 1;
     };
 
     // Helper functions 
