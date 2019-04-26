@@ -1,0 +1,19 @@
+{
+  "name": "photosynthesis",
+  "version": "1.0.0",
+  "description": "",
+  "main": "api.js",
+  "scripts": {
+    "dev": "nodemon api.js"
+  },
+  "author": "tao lin",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "cookie-parser": "^1.4.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
+}

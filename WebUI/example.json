@@ -1,0 +1,391 @@
+{
+    "board": [
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ],
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ],
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 3,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 3,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ],
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 3,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 4,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 3,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ],
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 3,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 3,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ],
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 2,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ],
+        [
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            },
+            {
+                "player": null,
+                "treeLevel": 0,
+                "leaves": 1,
+                "lastUsedBy": null,
+                "lastUsedTurn": -1,
+                "shade": 0
+            }
+        ]
+    ],
+    "players": [
+        {
+            "name": "fred",
+            "points": 0,
+            "sun": 0,
+            "playerBoard": {
+                "seeds": 4,
+                "level1Trees": 4,
+                "level2Trees": 3,
+                "level3Trees": 2
+            },
+            "available": {
+                "seeds": 2,
+                "level1Trees": 4,
+                "level2Trees": 1,
+                "level3Trees": 0
+            }
+        },
+        {
+            "name": "jon",
+            "points": 0,
+            "sun": 0,
+            "playerBoard": {
+                "seeds": 4,
+                "level1Trees": 4,
+                "level2Trees": 3,
+                "level3Trees": 2
+            },
+            "available": {
+                "seeds": 2,
+                "level1Trees": 4,
+                "level2Trees": 1,
+                "level3Trees": 0
+            }
+        }
+    ],
+    "yields": {
+        "1": [
+            12,
+            12,
+            12,
+            12,
+            13,
+            13,
+            13,
+            14,
+            14
+        ],
+        "2": [
+            13,
+            13,
+            14,
+            14,
+            16,
+            16,
+            17
+        ],
+        "3": [
+            17,
+            17,
+            18,
+            18,
+            19
+        ],
+        "4": [
+            20,
+            21,
+            22
+        ]
+    },
+    "hasStartingToken": 0,
+    "sunAngle": 0,
+    "sunCycle": 3,
+    "activePlayer": 0,
+    "preRound": 2,
+    "turnNumber": 0,
+    "done": false
+}
