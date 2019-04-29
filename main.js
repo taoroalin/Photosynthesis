@@ -3,184 +3,121 @@ module.exports.makeGame = function (players) {
     game = {};
     game.state = initState(players);
     game.constants = constants;
-    game.config = config;
 
     // Visible functions
-    game.endTurn = function (player) {
-        if (player == this.state.activePlayer) {
-            if (this.state.preRound <= 0) {
-                var rotate = this.config.alternateTurnStart;
-                this.state.turnNumber += 1;
-                this.state.sunAngle = (this.state.sunAngle + 1) % 6;
-                if (this.sunAngle == 0) {
-                    this.state.sunCycle -= 1;
-                    if (rotate) {
-                        this.state.hasStartingToken = (this.state.hasStartingToken + 1) % this.state.players.length;
-                        this.state.activePlayer = this.state.hasStartingToken;
-                    } else {
-                        this.state.activePlayer = (this.state.activePlayer + 1) % this.state.players.length;
-                    }
 
-                    if (this.state.sunCycle < 0) {
-                        this.state.done = true;
-                        return;
+    game.grow = function (player, position, source) {
+        if (this.preRound > 0){
+            if (player == this.activePlayer) {
+                var tile = this.getTile(position);
+                var player = this.players[player];
+                if (!(tile.player && tile.player !== player || this.usedTiles[position] !== undefined)) {
+    
+                    var cost = config.costToBuy[tile.treeLevel][player.available[tile.treeLevel]];
+                    cost += this.treeLevel + 1;
+                    if (cost <= player.sun) {
+    
+                        if (player.available[tile.treeLevel] > 0) {
+    
+                            if (!(tile.treeLevel == 0 && !(this.canReach(position, source)))) {
+    
+                                player.sun -= cost; // pay
+    
+                                if (tile.treeLevel == 0) { // Change board
+                                    player.available[0] -= 1;
+                                    tile.player = player;
+                                } else if (tile.treeLevel != 3) {
+                                    player.available[tile.treeLevel] += 1;
+                                    tile.treelevel += 1;
+                                    player.available[tile.treeLevel] -= 1;
+                                } else {
+                                    player.tokens.push(this.yields[tile.leaves].pop());
+                                    tile.player = null;
+                                }
+    
+                                if (player.sun == 0) { // End turn if you are out of sun
+                                    this.endTurn(player);
+                                }
+    
+                                return { success: true };
+                            }
+                            return { error: { code: "CannotReach" } };
+                        }
+                        return { error: { code: "NotAvailable" } };
                     }
-                } else {
-                    this.state.activePlayer = (this.state.activePlayer + 1) % this.state.players.length;
+                    return { error: { code: "CannotAfford" } };
                 }
-                this.castShade();
-                this.gatherSun();
+                return { error: { code: "BelongsToAnother" } };
             }
-            return { error: { code: "PreRound" } };
+            return { error: { code: "NotYourTurn" } };
         }
-        return { error: { code: "TurnError" } };
+        return {error:{code:"PreRound"}};
+    };
+
+    game.endTurn = function (player) {
+        if (player == this.activePlayer) {
+            this.usedTiles = {};
+            this.activePlayer = (this.activePlayer + 1)%this.players.length;
+            if (this.activePlayer == 0){ // Sun rotates
+                if (this.preRound > 0){ // Pre round
+                    this.preRound -= 1;
+                }else{ // Not pre round
+                    this.gatherSun();
+                    this.hasStartingToken = (this.hasStartingToken + 1)%this.players.length;
+                    this.sunAngle = (this.sunAngle + 1)%6;
+                    if (this.sunAngle == 0){ // Sun returned to start
+                        this.sunCycle -= 1;
+                        if (this.sunCycle == 0){ // Game ends
+                            for (p in this.players){
+    
+                                // Find out who wins
+                                var player = this.players[p];
+                                player.points = 0;
+                                for (t in player.tokens){
+                                    player.points += player.tokens[t];
+                                }
+                                var lps = 0;
+                                for (lp in config.lightPoints){
+                                    if (config.lightPoints[lp] > lps && lp <= player.sun){
+                                        lps = config.lightPoints[lp];
+                                    }
+                                }
+                                player.points += lps;
+                            }
+                            this.winner = {player: null, score: 0};
+                            for (p in this.players){
+                                if (this.winner.score < this.players[p].points){
+                                    this.winner.player = p;
+                                    this.winner.score = this.players[p].points;
+                                }
+                            }
+                            // Game over
+                        }
+                    }
+                }
+            }
+            return {success:true};
+        }
+        return { error: { code: "NotYourTurn" } };
     }
 
-    game.takeAction = function (player, action) {
-        if (player != this.state.activePlayer) {
-            return { error: { code: "TurnError" } };
-        } 
-        if (this.state.preRound > 0) {
-            var source = action.source;
-            console.log(this.getTile(source));
-            if (!(this.getTile(source).player===null)){
-                var tl = this.getTile(source);
-                tl.treeLevel = 1;
-                tl.player = player;
-                tl.lastUsedBy = player;
-                this.state.activePlayer = (this.state.activePlayer+1)%this.state.players.length;
-                if (this.state.activePlayer == 0){
-                    this.state.preRount -=1;
+    game.setupPut = function(player, position){
+        if (this.preRound > 0){
+            if (player == this.activePlayer){
+                var tile = this.getTile(position);
+                if (tile.player === null){
+                    tile.player = player;
+                    tile.treeLevel = 1;
+                    this.players[player].available[1] -= 1;
+
+                    this.endTurn(player); // End turn immediately after each setup put
                 }
-                return this.state;
+                return {error:{code:"BelongsToAnother"}};
             }
-            return {error: {code:"TileOccupied"}};
-        } else {
-            var a = this.action(player, action);
-            if (a.success) {
-                return this.state;
-            } else {
-                return a.error;
-            }
+            return { error: { code: "NotYourTurn" } };
         }
-    };
-
-    // Backend functions
-    game.action = function (player, action) {
-        if (action.type == "plant") {
-            if (this.canPlantSeed(player, action.source, action.target)) {
-                this.plant(player, action.source, action.target);
-            } else {
-                return { success: false, error: { error: { code: "CannotPlant" } } };
-            }
-        } else if (action.type == "grow") {
-            if (this.canUpgrade(player, action.source)) {
-                this.upgrade(player, action.source);
-            } else {
-                return { success: false, error: { error: { code: "CannotUpgrade" } } };
-            }
-        } else if (action.type == "retire") {
-            if (this.canRetire(player, action.source)) {
-                this.upgrade(player, action.source);
-            } else {
-                return { success: false, error: { error: { code: "CannotRetire" } } };
-            }
-        } else if (action.type == "buy") {
-            if (this.canPlantSeed(player, action.item)) {
-                this.purchase(player, action.item);
-            } else {
-                return { success: false, error: { error: { code: "CannotBuy" } } };
-            }
-        }
-        return { success: false, error: { error: { code: "InvalidAction" } } };
-    };
-
-    game.canPlantSeed = function (player, source, target) {
-        var reach = false;
-        var length = this.getTile(source).treeLevel;
-        for (var i = 0; i < 6; i++) {
-            for (var j = 1; j <= length; j++) {
-                if (this.getOffset(source, i, j) == target) {
-                    reach = true;
-                    break;
-                }
-            }
-            if (reach) break;
-        }
-        return (this.getTile(source).player == player &&
-            this.state.players[player].sun > 1 &&
-            this.state.players[player].available[0] > 0 &&
-            this.getTile(target).player === null &&
-            this.getTile(target).lastUsedTurn < this.state.turnNumber &&
-            this.getTile(source).lastUsedTurn < this.state.turnNumber &&
-            reach);
-    };
-
-    game.plant = function (player, source, target) {
-        var cost = this.config.plantSeedCost;
-        this.state.players[player].changeSun(-cost);
-        this.getTile(source).lastUsedTurn = this.state.turnNumber;
-        this.getTile(target).lastUsedBy = player;
-        this.getTile(target).lastUsedTurn = this.state.turnNumber;
-        this.getTile(target).treeLevel = 0;
-        this.getTile(target).player = player;
-        this.state.players[player].available[0] -= 1;
-    };
-
-    game.canUpgrade = function (player, source) {
-        var costs = this.config.upgradeFromCost;
-        return this.getTile(source).player == player &&
-            this.getTile(source).treeLevel < 3 &&
-            this.getTile(source).lastUsedTurn < this.state.turnNumber &&
-            this.state.players[player].sun >= costs[this.getTile(source).treeLevel] &&
-            this.state.players[player].available[this.getTile(source).treeLevel + 1] > 0;
-    };
-
-    game.upgrade = function (player, source) {
-        var costs = this.config.upgradeFromCost;
-        this.state.players[player].changeSun(-costs[this.getTile(source).treeLevel]);
-        this.getTile(source).lastUsedTurn = this.state.turnNumber;
-        this.getTile(source).treeLevel += 1;
-        this.state.players[player].available[this.getTile(source).treeLevel] -= 1;
-        this.state.players[player].store[this.getTile(source).treeLevel - 1] += 1;
-    };
-
-    game.canPurchase = function (player, item) {
-        var costToBuy = this.config.costToBuy;
-        return item < 4 &&
-            item >= 0 &&
-            this.state.players[player].playerBoard[item] > 0 &&
-            this.state.players[player].sun >= costToBuy[state.players[player].playerBoard[item] - 1];
-    };
-
-    game.purchase = function (player, item) {
-        var costToBuy = this.config.costToBuy;
-        this.state.players[player].changeSun(-costToBuy[item]);
-        this.state.players[player].available[item] += 1;
-        this.state.players[player].store[item] -= 1;
-        this.state.players[player].playerBoard[item] -= 1;
-    };
-
-    game.canRetire = function (player, source) {
-        var costToRetire = this.config.retireCost;
-        return this.getTile(source).player == player &&
-            this.getTile(source).lastUsedTurn < this.state.turnNumber &&
-            this.getTile(source).treeLevel == 3 &&
-            this.state.players[player].available[3] > 0 &&
-            this.state.players[player].sun > costToRetire;
-    };
-
-    game.retire = function (player, source) {
-        var costToRetire = this.config.retireCost;
-        this.getTile(source) = 0;
-        this.getTile(source).player = null;
-        this.getTile(source).lastUsedTurn = this.state.turnNumber;
-        this.getTile(source).treeLevel = 0;
-        this.state.players[player].playerBoard[3] += 1;
-        this.state.players[player].changeSun(-costToRetire);
-        this.state.players[player].points += this.state.yields[this.getTile(source).leaves].pop();
-        this.state.players[player].store[3] += 1;
-    };
+        return {error:{code:"OnlyPreRound"}};
+    }
 
     // Helper functions 
     game.gatherSun = function () {
@@ -230,7 +167,7 @@ module.exports.makeGame = function (players) {
     };
 
     game.getOffset = function (source, direction, distance) {
-        var side = this.config.side;
+        var side = config.side;
         var target, y, x;
         if (angle == 1 || angle == 4) {
             target = [source[0], source[1] + distance * (direction - 2)];
@@ -265,68 +202,26 @@ module.exports.makeGame = function (players) {
         return this.state.board[s[0]][s[1]];
     };
 
+    game.canReach = function (source, target) {
+        var length = this.getTile(source).treeLevel;
+        for (var i = 0; i < 6; i++) {
+            for (var j = 1; j <= length; j++) {
+                if (this.getOffset(source, i, j) == target) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
     return game;
 };
-
-config = {
-    mapSize: 4,
-    totalResources: {
-        seeds: 6,
-        level1Trees: 8,
-        level2Trees: 4,
-        level3Trees: 2,
-    },
-    playerBoardResources: {
-        seeds: 4,
-        level1Trees: 4,
-        level2Trees: 3,
-        level3Trees: 2,
-    },
-    lightPoints: {
-        3: 1,
-        6: 2,
-        9: 3,
-        12: 4,
-        15: 5,
-        18: 6
-    },
-    // Cost to buy if player has i in inventory
-    costToBuy: [
-        [2, 2, 1, 1],
-        [3, 3, 2, 2],
-        [4, 3, 3],
-        [5, 4],
-    ],
-    upgradeFromCost: [1, 2, 3],
-    retireCost: 4,
-    plantSeedCost: 1,
-    alternateTurnStart: true,
-    sunsByPlayers: {
-        2: 3,
-        3: 4,
-        4: 4
-    },
-    harvestYields: {
-        1: [12, 12, 12, 12, 13, 13, 13, 14, 14],
-        2: [13, 13, 14, 14, 16, 16, 17],
-        3: [17, 17, 18, 18, 19],
-        4: [20, 21, 22]
-    },
-    skipLevel4WithPlayers: [2],
-    maxPlayers: 4
-}
-
-constants = {
-
-}
 
 function createTile(leaves = 1) {
     tile = {};
     tile.player = null;
     tile.treeLevel = 0;
     tile.leaves = leaves;
-    tile.lastUsedBy = null;
-    tile.lastUsedTurn = -1;
     tile.shade = 0;
     return tile;
 }
@@ -348,60 +243,35 @@ function createBoard() {
     return board;
 }
 
-function createPlayer(player) {
-    var totals = config.totalResources;
-    var inventory = config.playerBoardResources;
-    var lightPoints = config.lightPoints;
+function createPlayer() {
+    var totals = config.resources;
 
-    if (!player.name) player.name = "Guest";
-
-    player.points = 0;
+    var player = {};
+    player.tokens = [];
     player.sun = 0;
-    player.playerBoard = {
-        seeds: inventory.seeds,
-        level1Trees: inventory.level1Trees,
-        level2Trees: inventory.level2Trees,
-        level3Trees: inventory.level3Trees,
-    }
-    player.available = {
-        seeds: totals.seeds - inventory.seeds,
-        level1Trees: totals.level1Trees - inventory.level1Trees,
-        level2Trees: totals.level2Trees - inventory.level2Trees,
-        level3Trees: totals.level3Trees - inventory.level3Trees,
-    }
-
-    player.changeSun = function (sun) {
-        var origPoints = this.points;
-        for (var i = lightPoints.length - 1; i >= 0; i--) {
-            if (this.sun >= lightPoints[i]) {
-                this.points -= lightPoints[i];
-                break;
-            }
-        }
-        this.sun += sun;
-        for (var i = lightPoints.length - 1; i >= 0; i--) {
-            if (this.sun >= lightPoints[i]) {
-                this.points += lightPoints[i];
-                break;
-            }
-        }
-    }
+    player.available = [
+        totals.seeds,
+        totals.level1Trees,
+        totals.level2Trees,
+        totals.level3Trees,
+    ];
 
     return player;
 }
 
 function initState(players) {
     var maxPlayers = config.maxPlayers;
+    var minPlayers = config.minPlayers;
     var maxSuns = config.sunsByPlayers[players.length];
     var yields = config.harvestYields;
 
-    console.assert(players.length <= maxPlayers && players.length >= 2, "too many players");
+    console.assert(players <= maxPlayers && players >= minPlayers, "too many players");
     gameState = {};
     gameState.board = createBoard();
 
-    gameState.players = players;
+    gameState.players = [];
     for (var i = 0; i < players.length; i++) {
-        createPlayer(players[i]);
+        gameState.players.push(createPlayer());
     }
 
     gameState.yields = JSON.parse(JSON.stringify(yields))
@@ -410,7 +280,44 @@ function initState(players) {
     gameState.sunCycle = maxSuns;
     gameState.activePlayer = 0;
     gameState.preRound = 2; //turnPhases are prePerimeterTrees, build
-    gameState.turnNumber = 0;
-    gameState.done = false;
+    gameState.usedTiles = {};
     return gameState;
+}
+
+config = {
+    mapSize: 4,
+    resources: {
+        seeds: 6,
+        level1Trees: 8,
+        level2Trees: 4,
+        level3Trees: 2,
+    },
+    // Cost to buy if player has i in inventory
+    costToBuy: [
+        [2, 2, 1, 1, 1, 1],
+        [3, 3, 2, 2, 2, 2, 2, 2],
+        [4, 3, 3, 3],
+        [5, 4],
+    ],
+    yields: {
+        1: [12, 12, 12, 12, 13, 13, 13, 14, 14],
+        2: [13, 13, 14, 14, 16, 16, 17],
+        3: [17, 17, 18, 18, 19],
+        4: [20, 21, 22]
+    },
+    maxPlayers: 4,
+    minPlayers: 2,
+    sunsByPlayers: {
+        2: 3,
+        3: 4,
+        4: 4
+    },
+    lightPoints: {
+        3: 1,
+        6: 2,
+        9: 3,
+        12: 4,
+        15: 5,
+        18: 6
+    },
 }
