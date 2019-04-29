@@ -1,13 +1,96 @@
 <!DOCTYPE html>
-<html lang="en"></html>
+<html lang="en">
+
+</html>
+
 <head>
-    <script src="main.js"></script>
+
+    <script>
+        var apiurl = "http://localhost:8000/";
+
+        function get(path, query) {
+            var params = new URLSearchParams();
+            for (z in query){
+                params.set(z, query[z]);
+            }
+            return fetch(apiurl + path+'?'+params.toString(), {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+                credentials:"same-origin",
+                mode:"cors"
+            }).then(response => response.json())
+        }
+
+        function put(path, query) {
+            return fetch(apiurl + path, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                credentials:"same-origin",
+                body: JSON.stringify(query),
+                mode:"cors"
+
+            }).then(response => response.json())
+        }
+
+        function post(path, query) {
+            return fetch(apiurl + path, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials:"same-origin",
+                body: JSON.stringify(query),
+                mode:"cors"
+
+            }).then(response => response.json())
+        }
+
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("createGame").addEventListener("click", function (e) {
+                var name = document.getElementById("myGameName").value;
+                var username = document.getElementById("myUsername").value;
+                var players = document.getElementById("playerCount").value;
+                if (name && username && players) {
+                    post('add', { name: name, username: username, players:Number(players) }).then(response => { console.log("added"); console.log(response) });
+                }
+            });
+
+            document.getElementById("refresh").addEventListener("click", function (e) {
+                get('games', {}).then(response => { console.log("got games"); console.log(response) });
+            });
+        });
+    </script>
+
     <style>
+
     </style>
+
     <title>Photosynthesis</title>
 </head>
+
 <body>
-    <div>
+    <div id="lobby">
+        <h1>Photosynthesis</h1>
+        <p>An arboreal economics game</p>
+        <button id="refresh">Refresh</button>
+        <input id="playerCount">
+        <input id="myUsername">
+        <input id="myGameName">
+        <button id="createGame">Create</button>
+        <ul id="lobbyGames">
+
+        </ul>
+        <template class="lobbyGame">
+            <h3 class="gameName"></h3>
+            <button class="joinGame">Join</button>
+            <button class="startGame">Start</button>
+            <ul>
+                <li class="player"></li>
+            </ul>
+        </template>
+    </div>
+    <div id="GameDiv">
         <canvas id="game" height="400" width="300">
 
         </canvas>

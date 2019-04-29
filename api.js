@@ -2,6 +2,7 @@ var express = require('express');
 var main = require("./main.js");
 var cookie = require('cookie-parser');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
 var consts = {
     idlen: 50,
@@ -12,6 +13,7 @@ var consts = {
 var app = express();
 app.use(cookie());
 app.use(bodyParser.json());
+app.use(cors());
 
 var games = {};
 var lobby = {};
@@ -20,11 +22,18 @@ var game, lobby, player, cookieEntry, gameCookie, playerCookie, name;
 
 app.listen(8000, () => { console.log("started"); });
 
+app.options(/.*/, function(req, res){
+    res.set('content-type', '*/*');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+});
+
 app.get('/games', function (_, res) {
     res.json(lobby);
 });
 
 app.post('/add', function (req, res) {
+    console.log(req.body);
     if (lobby[req.body.name] === undefined) {
 
         lobbyGame = {}; // Make lobby entry

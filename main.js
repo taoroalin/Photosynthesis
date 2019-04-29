@@ -131,7 +131,7 @@ module.exports.makeGame = function (players) {
                 var t = this.getTile([i, j]);
                 if (!(t.player == null)) {
                     if (!(t.shade && t.treeLevel <= t.shade)) {
-                        this.state.players[t.player].changeSun(t.treeLevel);
+                        this.state.players[t.player].sun += t.treeLevel;
                     }
                 }
             }
