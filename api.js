@@ -16,16 +16,16 @@ app.use(bodyParser.json());
 var games = {};
 var lobby = {};
 var cookies = {};
-var game, lobby, cookieEntry, gameCookie, playerCookie, name;
+var game, lobby, player, cookieEntry, gameCookie, playerCookie, name;
 
 app.listen(8000, () => { console.log("started"); });
 
-app.get('/games', function (req, res, next) {
+app.get('/games', function (res) {
     res.json(lobby);
 });
 
-app.post('/add', function (req, res, next) {
-    if (lobby[req.body.name] !== undefined) {
+app.post('/add', function (req, res) {
+    if (lobby[req.body.name] === undefined) {
 
         lobbyGame = {}; // Make lobby entry
         lobbyGame.name = req.body.name;
@@ -46,7 +46,7 @@ app.post('/add', function (req, res, next) {
     }
 });
 
-app.put('/join', function (req, res, next) {
+app.put('/join', function (req, res) {
     name = req.body.name;
     if (lobby[name] !== undefined) {
         if (lobby[name].stage == "staging") {
@@ -72,108 +72,78 @@ app.put('/join', function (req, res, next) {
     }
 });
 
-app.put('/start', function (req, res, next) {
-    name = req.body.name;
-    if (lobby[name] !== undefined && lobby[name].stage == "staging") {
-        if (cookies[name].cookie == req.cookies.gameCookie) {
-            lobby[name].stage = "playing";
-            game = main.makeGame(lobby[name].players.length);
-            games[name] = game;
-            res.json(game);
-        } else {
-            res.status(403);
-            res.json({ error: { code: "NotInGame" } });
-        }
-    } else {
-        res.status(404);
-        res.json({ error: { code: "NoGame" } });
+app.put('/start', function (req, res) {
+    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res, true);
+    if (player !== false) {
+        lobby[name].stage = "playing";
+        game = main.makeGame(lobby[name].players.length);
+        games[name] = game;
+        res.json(game);
     }
 });
 
-app.get('/state', function (req, res, next) {
-    name = req.query.name;
-    if (lobby[name] !== undefined && lobby[name].stage == "playing") {
-        if (cookies[name].cookie == req.cookies.gameCookie){
-            game = games[name];
-            res.json(game.state);
-        } else {
-            res.status(403);
-            res.json({ error: { code: "NotInGame" } });
-        }
-    } else {
-        res.status(404);
-        res.json({ error: { code: "NoGame" } });
+app.get('/state', function (req, res) {
+    player = accessGame(req.query.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    if (player !== false) {
+        game = games[name];
+        res.json(game.state);
     }
 });
 
-app.put('/grow', function (req, res, next) {
-    name = req.body.name;
-    if (games[name] !== undefined) {
-        if (cookies[name].cookie == req.cookies.gameCookie){
-            game = games[name];
-            var r = game.grow(player, req.body.position, req.body.source);
-            res.json(r);
-        } else {
-            res.status(403);
-            res.json({ error: { code: "NotInGame" } });
-        }
-    } else {
-        res.status(404);
-        res.json({ error: { code: "NoGame" } });
+app.put('/grow', function (req, res) {
+    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    if (player !== false) {
+        game = games[name];
+        var r = game.grow(player, req.body.position, req.body.source);
+        res.json(r);
     }
 });
 
-app.put('/endturn', function (req, res, next) {
-    name = req.body.name;
-    if (games[name] !== undefined) {
-        if (cookies[name].cookie == req.cookies.gameCookie){
-            game = games[name];
-            var r = game.endTurn(player, req.body.position);
-            res.json(r);
-        } else {
-            res.status(403);
-            res.json({ error: { code: "NotInGame" } });
-        }
-    } else {
-        res.status(404);
-        res.json({ error: { code: "NoGame" } });
+app.put('/endturn', function (req, res) {
+    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    if (player !== false) {
+        game = games[name];
+        var r = game.endTurn(player, req.body.position);
+        res.json(r);
     }
 });
 
-app.put('/setupput', function(req, res, next){
-    name = req.body.name;
-    if (games[name] !== undefined) {
-        if (cookies[name].cookie == req.cookies.gameCookie){
-            game = games[name];
-            var r = game.setupPut(player, req.body.position);
-            res.json(r);
-        } else {
-            res.status(403);
-            res.json({ error: { code: "NotInGame" } });
-        }
-    } else {
-        res.status(404);
-        res.json({ error: { code: "NoGame" } });
+app.put('/setupput', function (req, res) {
+    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    if (player !== false) {
+        game = games[name];
+        var r = game.setupPut(player, req.body.position);
+        res.json(r);
     }
 });
 
-app.delete('/finish', function (req, res, next) {
-    name = req.body.name;
-    if (games[name] !== undefined) {
-        if (cookies[name].cookie == req.cookies.gameCookie){
-            delete cookies[nm];
-            delete games[nm];
-            delete lobby[nm];
-            res.json({success:true});
-        } else {
-            res.status(403);
-            res.json({ error: { code: "NotInGame" } });
+app.delete('/finish', function (req, res) {
+    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    if (player !== false) {
+        delete cookies[nm];
+        delete games[nm];
+        delete lobby[nm];
+        res.json({ success: true });
+    }
+});
+
+function accessGame(nm, gc, pc, res, st) {
+    if (lobby[nm] !== undefined && (games[nm] !== undefined || st)) {
+        if (cookies[nm].cookie == gc) {
+            for (apc in cookies[nm].players) {
+                if (pc == cookies[nm].players[apc]) {
+                    return apc;
+                }
+            }
         }
+        res.status(403);
+        res.json({ error: { code: "NotInGame" } });
     } else {
         res.status(404);
         res.json({ error: { code: "NoGame" } });
     }
-});
+    return false;
+}
 
 function makeid() {
     var length = consts.idlen;

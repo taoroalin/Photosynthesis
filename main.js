@@ -2,27 +2,28 @@
 module.exports.makeGame = function (players) {
     game = {};
     game.state = initState(players);
-    game.constants = constants;
 
     // Visible functions
 
     game.grow = function (player, position, source) {
-        if (this.preRound > 0){
+        if (this.preRound > 0) {
             if (player == this.activePlayer) {
                 var tile = this.getTile(position);
                 var player = this.players[player];
-                if (!(tile.player && tile.player !== player || this.usedTiles[position] !== undefined)) {
-    
-                    var cost = config.costToBuy[tile.treeLevel][player.available[tile.treeLevel]];
+                if (!((tile.player && tile.player !== player) ||
+                    this.usedTiles[position] !== undefined)) {
+
+                    var cost = 0;
+                    cost += config.costToBuy[tile.treeLevel][player.available[tile.treeLevel]];
                     cost += this.treeLevel + 1;
                     if (cost <= player.sun) {
-    
+
                         if (player.available[tile.treeLevel] > 0) {
-    
+
                             if (!(tile.treeLevel == 0 && !(this.canReach(position, source)))) {
-    
+
                                 player.sun -= cost; // pay
-    
+
                                 if (tile.treeLevel == 0) { // Change board
                                     player.available[0] -= 1;
                                     tile.player = player;
@@ -34,11 +35,11 @@ module.exports.makeGame = function (players) {
                                     player.tokens.push(this.yields[tile.leaves].pop());
                                     tile.player = null;
                                 }
-    
+
                                 if (player.sun == 0) { // End turn if you are out of sun
                                     this.endTurn(player);
                                 }
-    
+
                                 return { success: true };
                             }
                             return { error: { code: "CannotReach" } };
@@ -51,42 +52,42 @@ module.exports.makeGame = function (players) {
             }
             return { error: { code: "NotYourTurn" } };
         }
-        return {error:{code:"PreRound"}};
+        return { error: { code: "PreRound" } };
     };
 
     game.endTurn = function (player) {
         if (player == this.activePlayer) {
             this.usedTiles = {};
-            this.activePlayer = (this.activePlayer + 1)%this.players.length;
-            if (this.activePlayer == 0){ // Sun rotates
-                if (this.preRound > 0){ // Pre round
+            this.activePlayer = (this.activePlayer + 1) % this.players.length;
+            if (this.activePlayer == 0) { // Sun rotates
+                if (this.preRound > 0) { // Pre round
                     this.preRound -= 1;
-                }else{ // Not pre round
+                } else { // Not pre round
                     this.gatherSun();
-                    this.hasStartingToken = (this.hasStartingToken + 1)%this.players.length;
-                    this.sunAngle = (this.sunAngle + 1)%6;
-                    if (this.sunAngle == 0){ // Sun returned to start
+                    this.hasStartingToken = (this.hasStartingToken + 1) % this.players.length;
+                    this.sunAngle = (this.sunAngle + 1) % 6;
+                    if (this.sunAngle == 0) { // Sun returned to start
                         this.sunCycle -= 1;
-                        if (this.sunCycle == 0){ // Game ends
-                            for (p in this.players){
-    
+                        if (this.sunCycle == 0) { // Game ends
+                            for (p in this.players) {
+
                                 // Find out who wins
                                 var player = this.players[p];
                                 player.points = 0;
-                                for (t in player.tokens){
+                                for (t in player.tokens) {
                                     player.points += player.tokens[t];
                                 }
                                 var lps = 0;
-                                for (lp in config.lightPoints){
-                                    if (config.lightPoints[lp] > lps && lp <= player.sun){
+                                for (lp in config.lightPoints) {
+                                    if (config.lightPoints[lp] > lps && lp <= player.sun) {
                                         lps = config.lightPoints[lp];
                                     }
                                 }
                                 player.points += lps;
                             }
-                            this.winner = {player: null, score: 0};
-                            for (p in this.players){
-                                if (this.winner.score < this.players[p].points){
+                            this.winner = { player: null, score: 0 };
+                            for (p in this.players) {
+                                if (this.winner.score < this.players[p].points) {
                                     this.winner.player = p;
                                     this.winner.score = this.players[p].points;
                                 }
@@ -96,27 +97,27 @@ module.exports.makeGame = function (players) {
                     }
                 }
             }
-            return {success:true};
+            return { success: true };
         }
         return { error: { code: "NotYourTurn" } };
     }
 
-    game.setupPut = function(player, position){
-        if (this.preRound > 0){
-            if (player == this.activePlayer){
+    game.setupPut = function (player, position) {
+        if (this.preRound > 0) {
+            if (player == this.activePlayer) {
                 var tile = this.getTile(position);
-                if (tile.player === null){
+                if (tile.player === null) {
                     tile.player = player;
                     tile.treeLevel = 1;
                     this.players[player].available[1] -= 1;
 
                     this.endTurn(player); // End turn immediately after each setup put
                 }
-                return {error:{code:"BelongsToAnother"}};
+                return { error: { code: "BelongsToAnother" } };
             }
             return { error: { code: "NotYourTurn" } };
         }
-        return {error:{code:"OnlyPreRound"}};
+        return { error: { code: "OnlyPreRound" } };
     }
 
     // Helper functions 
@@ -168,7 +169,7 @@ module.exports.makeGame = function (players) {
 
     game.getOffset = function (source, direction, distance) {
         var side = config.side;
-        var target, y, x;
+        var target, y, x, split, width;
         if (angle == 1 || angle == 4) {
             target = [source[0], source[1] + distance * (direction - 2)];
             if (target[1] >= 0 && target[1] < this.state.board[target[0]].length) {
@@ -177,19 +178,25 @@ module.exports.makeGame = function (players) {
                 return false;
             }
         } else if (angle == 0 || angle == 2) {
-            y = source[0] + distance * (direction - 1);
-            x = source[1] - (Math.max(0, (1 - direction) * (side - x)) - Math.max(0, (1 - direction) * (side - source[0])));
+            split = 1 - direction;
+            y = source[0] + distance * (-split);
+            x = source[1];
+            x -= Math.max(0, split * (side - x)) - Math.max(0, split * (side - source[0]));
             target = [y, x];
-            if (x >= 0 && x < this.state.board[y].length && y >= 0 && y < this.state.board.length) {
+            width = this.state.board[y].length;
+            if (x >= 0 && x < width && y >= 0 && y < width) {
                 return target;
             } else {
                 return false;
             }
         } else if (angle == 3 || angle == 5) {
+            split = direction - 4;
             y = source[0] + distance * (4 - direction);
-            x = source[1] - (Math.max(0, (direction - 4) * (side - x)) - Math.max(0, (direction - 4) * (side - source[0])));
+            x = source[1];
+            x -= Math.max(0, split * (side - x)) - Math.max(0, split * (side - source[0]));
             target = [y, x];
-            if (x >= 0 && x < this.state.board[y].length && y >= 0 && y < this.state.board.length) {
+            width = this.state.board[y].length;
+            if (x >= 0 && x < width && y >= 0 && y < width) {
                 return target;
             } else {
                 return false;
@@ -236,7 +243,7 @@ function createBoard() {
         max = side - Math.abs(side - 1 - i);
         board.push([]);
         for (j = 0; j < width; j++) {
-            leaves = Math.min(max, Math.floor(1 + width / 2.0 - Math.abs(-(width - 1) / 2.0 + j)));
+            leaves = Math.min(max, Math.floor(1 + width / 2 - Math.abs(-(width - 1) / 2 + j)));
             board[i].push(createTile(leaves));
         }
     }
@@ -262,15 +269,15 @@ function createPlayer() {
 function initState(players) {
     var maxPlayers = config.maxPlayers;
     var minPlayers = config.minPlayers;
-    var maxSuns = config.sunsByPlayers[players.length];
-    var yields = config.harvestYields;
+    var maxSuns = config.sunsByPlayers[players];
+    var yields = config.yields;
 
     console.assert(players <= maxPlayers && players >= minPlayers, "too many players");
     gameState = {};
     gameState.board = createBoard();
 
     gameState.players = [];
-    for (var i = 0; i < players.length; i++) {
+    for (var i = 0; i < players; i++) {
         gameState.players.push(createPlayer());
     }
 
