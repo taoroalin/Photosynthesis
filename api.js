@@ -20,7 +20,7 @@ var game, lobby, player, cookieEntry, gameCookie, playerCookie, name;
 
 app.listen(8000, () => { console.log("started"); });
 
-app.get('/games', function (res) {
+app.get('/games', function (_, res) {
     res.json(lobby);
 });
 
@@ -73,7 +73,10 @@ app.put('/join', function (req, res) {
 });
 
 app.put('/start', function (req, res) {
-    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res, true);
+    name = req.body.name;
+    gameCookie = req.cookies.gameCookie;
+    playerCookie = req.cookies.playerCookie;
+    player = accessGame(name, gameCookie, playerCookie, res, true, req.body.cc);
     if (player !== false) {
         lobby[name].stage = "playing";
         game = main.makeGame(lobby[name].players.length);
@@ -83,7 +86,10 @@ app.put('/start', function (req, res) {
 });
 
 app.get('/state', function (req, res) {
-    player = accessGame(req.query.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    name = req.query.name;
+    gameCookie = req.cookies.gameCookie;
+    playerCookie = req.cookies.playerCookie;
+    player = accessGame(name, gameCookie, playerCookie, res, false, req.body.cc);;
     if (player !== false) {
         game = games[name];
         res.json(game.state);
@@ -91,7 +97,10 @@ app.get('/state', function (req, res) {
 });
 
 app.put('/grow', function (req, res) {
-    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    name = req.body.name;
+    gameCookie = req.cookies.gameCookie;
+    playerCookie = req.cookies.playerCookie;
+    player = accessGame(name, gameCookie, playerCookie, res, false, req.body.cc);
     if (player !== false) {
         game = games[name];
         var r = game.grow(player, req.body.position, req.body.source);
@@ -100,7 +109,10 @@ app.put('/grow', function (req, res) {
 });
 
 app.put('/endturn', function (req, res) {
-    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    name = req.body.name;
+    gameCookie = req.cookies.gameCookie;
+    playerCookie = req.cookies.playerCookie;
+    player = accessGame(name, gameCookie, playerCookie, res, false, req.body.cc);
     if (player !== false) {
         game = games[name];
         var r = game.endTurn(player, req.body.position);
@@ -109,7 +121,10 @@ app.put('/endturn', function (req, res) {
 });
 
 app.put('/setupput', function (req, res) {
-    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    name = req.body.name;
+    gameCookie = req.cookies.gameCookie;
+    playerCookie = req.cookies.playerCookie;
+    player = accessGame(name, gameCookie, playerCookie, res, false, req.body.cc);
     if (player !== false) {
         game = games[name];
         var r = game.setupPut(player, req.body.position);
@@ -118,7 +133,10 @@ app.put('/setupput', function (req, res) {
 });
 
 app.delete('/finish', function (req, res) {
-    player = accessGame(req.body.name, req.cookies.gameCookie, req.cookies.playerCookie, res);
+    name = req.body.name;
+    gameCookie = req.cookies.gameCookie;
+    playerCookie = req.cookies.playerCookie;
+    player = accessGame(name, gameCookie, playerCookie, res, false, req.body.cc);
     if (player !== false) {
         delete cookies[nm];
         delete games[nm];
@@ -127,9 +145,12 @@ app.delete('/finish', function (req, res) {
     }
 });
 
-function accessGame(nm, gc, pc, res, st) {
+function accessGame(nm, gc, pc, res, st, cc) {
     if (lobby[nm] !== undefined && (games[nm] !== undefined || st)) {
         if (cookies[nm].cookie == gc) {
+            if (cc!==undefined){
+                return cc;
+            }
             for (apc in cookies[nm].players) {
                 if (pc == cookies[nm].players[apc]) {
                     return apc;

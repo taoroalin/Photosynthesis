@@ -6,16 +6,16 @@ module.exports.makeGame = function (players) {
     // Visible functions
 
     game.grow = function (player, position, source) {
-        if (this.preRound > 0) {
-            if (player == this.activePlayer) {
+        if (this.state.preRound == 0) {
+            if (player == this.state.activePlayer) {
                 var tile = this.getTile(position);
-                var player = this.players[player];
+                var player = this.state.players[player];
                 if (!((tile.player && tile.player !== player) ||
-                    this.usedTiles[position] !== undefined)) {
+                    this.state.usedTiles[position] !== undefined)) {
 
                     var cost = 0;
                     cost += config.costToBuy[tile.treeLevel][player.available[tile.treeLevel]];
-                    cost += this.treeLevel + 1;
+                    cost += tile.treeLevel + 1;
                     if (cost <= player.sun) {
 
                         if (player.available[tile.treeLevel] > 0) {
@@ -32,7 +32,7 @@ module.exports.makeGame = function (players) {
                                     tile.treelevel += 1;
                                     player.available[tile.treeLevel] -= 1;
                                 } else {
-                                    player.tokens.push(this.yields[tile.leaves].pop());
+                                    player.tokens.push(this.state.yields[tile.leaves].pop());
                                     tile.player = null;
                                 }
 
@@ -56,23 +56,24 @@ module.exports.makeGame = function (players) {
     };
 
     game.endTurn = function (player) {
-        if (player == this.activePlayer) {
-            this.usedTiles = {};
-            this.activePlayer = (this.activePlayer + 1) % this.players.length;
-            if (this.activePlayer == 0) { // Sun rotates
-                if (this.preRound > 0) { // Pre round
-                    this.preRound -= 1;
-                } else { // Not pre round
+        if (player == this.state.activePlayer) {
+            this.state.usedTiles = {};
+            this.state.activePlayer = (this.state.activePlayer + 1) % this.state.players.length;
+            this.state.hasStartingToken = (this.state.hasStartingToken + 1) % this.state.players.length;            
+            if (this.state.activePlayer == 0) { // Sun rotates
+                if (this.state.preRound > 0) { // Pre round
+                    this.state.preRound -= 1;
+                }
+                if (this.state.preRound == 0){ // Not pre round
                     this.gatherSun();
-                    this.hasStartingToken = (this.hasStartingToken + 1) % this.players.length;
-                    this.sunAngle = (this.sunAngle + 1) % 6;
-                    if (this.sunAngle == 0) { // Sun returned to start
-                        this.sunCycle -= 1;
-                        if (this.sunCycle == 0) { // Game ends
-                            for (p in this.players) {
+                    this.state.sunAngle = (this.state.sunAngle + 1) % 6;
+                    if (this.state.sunAngle == 0) { // Sun returned to start
+                        this.state.sunCycle -= 1;
+                        if (this.state.sunCycle == 0) { // Game ends
+                            for (p in this.state.players) {
 
                                 // Find out who wins
-                                var player = this.players[p];
+                                var player = this.state.players[p];
                                 player.points = 0;
                                 for (t in player.tokens) {
                                     player.points += player.tokens[t];
@@ -85,11 +86,11 @@ module.exports.makeGame = function (players) {
                                 }
                                 player.points += lps;
                             }
-                            this.winner = { player: null, score: 0 };
-                            for (p in this.players) {
-                                if (this.winner.score < this.players[p].points) {
-                                    this.winner.player = p;
-                                    this.winner.score = this.players[p].points;
+                            this.state.winner = { player: null, score: 0 };
+                            for (p in this.state.players) {
+                                if (this.state.winner.score < this.state.players[p].points) {
+                                    this.state.winner.player = p;
+                                    this.state.winner.score = this.state.players[p].points;
                                 }
                             }
                             // Game over
@@ -103,15 +104,16 @@ module.exports.makeGame = function (players) {
     }
 
     game.setupPut = function (player, position) {
-        if (this.preRound > 0) {
-            if (player == this.activePlayer) {
+        if (this.state.preRound > 0) {
+            if (player == this.state.activePlayer) {
                 var tile = this.getTile(position);
                 if (tile.player === null) {
                     tile.player = player;
                     tile.treeLevel = 1;
-                    this.players[player].available[1] -= 1;
+                    this.state.players[player].available[1] -= 1;
 
                     this.endTurn(player); // End turn immediately after each setup put
+                    return {success: true};
                 }
                 return { error: { code: "BelongsToAnother" } };
             }
