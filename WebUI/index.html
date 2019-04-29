@@ -5,45 +5,7 @@
 
 <head>
 
-    <script>
-        var apiurl = "http://localhost:8000/";
-
-        function get(path, query) {
-            var params = new URLSearchParams();
-            for (z in query){
-                params.set(z, query[z]);
-            }
-            return fetch(apiurl + path+'?'+params.toString(), {
-                method: "GET",
-                headers: { "Content-Type": "application/json" },
-                credentials:"same-origin",
-                mode:"cors"
-            }).then(response => response.json())
-        }
-
-        function put(path, query) {
-            return fetch(apiurl + path, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                credentials:"same-origin",
-                body: JSON.stringify(query),
-                mode:"cors"
-
-            }).then(response => response.json())
-        }
-
-        function post(path, query) {
-            return fetch(apiurl + path, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials:"same-origin",
-                body: JSON.stringify(query),
-                mode:"cors"
-
-            }).then(response => response.json())
-        }
-
-    </script>
+    <script src="api.js"></script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -52,18 +14,66 @@
                 var username = document.getElementById("myUsername").value;
                 var players = document.getElementById("playerCount").value;
                 if (name && username && players) {
-                    post('add', { name: name, username: username, players:Number(players) }).then(response => { console.log("added"); console.log(response) });
+                    post('add', { name: name, username: username, players: Number(players) }).then(response => { console.log("added"); console.log(response) });
                 }
             });
 
             document.getElementById("refresh").addEventListener("click", function (e) {
-                get('games', {}).then(response => { console.log("got games"); console.log(response) });
+                get('games', false).then(response => {
+                    if (response.error === undefined) {
+                        var gameList = document.getElementById("lobbyGames");
+                        gameList.innerHTML = "";
+                        var temp = document.getElementsByTagName("template")[0];
+                        for (var gm in response) {
+                            var gmdata = response[gm];
+                            var clon = temp.content.cloneNode(true);
+                            gameList.appendChild(clon);
+                            var el = document.getElementsByClassName("lobbyGameDiv");
+                            el = el[el.length - 1];
+                            console.log(clon);
+                            var name = gmdata.name;
+                            el.getElementsByClassName("gameName")[0].innerText = name;
+                            el.getElementsByClassName("joinGame")[0].addEventListener("click", function () {
+                                var username = document.getElementById("myUsername").value;
+                                if (username) {
+                                    put('join', { name: name, username: username }).then(function (response) {
+                                        if (response.error === undefined) {
+                                            console.log("joining game");
+                                            startGame(name);
+                                        } else {
+                                            alert(response);
+                                        }
+                                    });
+                                }
+                            });
+                            el.getElementsByClassName("startGame")[0].addEventListener("click", function () {
+                                if (document.cookie) {
+                                    put('start', { name: name }).then(function (response) {
+                                        if (response.error === undefined) {
+                                            console.log("starting game");
+                                        } else {
+                                            alert(response);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }
+                });
             });
         });
+
+        function startGame(name){
+            document.getElementById("lobby").display = "none";
+            document.getElementById("GameDiv").display = "block";
+            // begin();
+        }
     </script>
 
     <style>
-
+        #GameDiv {
+            display: none;
+        }
     </style>
 
     <title>Photosynthesis</title>
@@ -82,16 +92,18 @@
 
         </ul>
         <template class="lobbyGame">
-            <h3 class="gameName"></h3>
-            <button class="joinGame">Join</button>
-            <button class="startGame">Start</button>
-            <ul>
-                <li class="player"></li>
-            </ul>
+            <div class="lobbyGameDiv">
+                <h3 class="gameName"></h3>
+                <button class="joinGame">Join</button>
+                <button class="startGame">Start</button>
+                <ul>
+                    <li class="player"></li>
+                </ul>
+            </div>
         </template>
     </div>
     <div id="GameDiv">
-        <canvas id="game" height="400" width="300">
+        <canvas id="game" height="800" width="800">
 
         </canvas>
     </div>
