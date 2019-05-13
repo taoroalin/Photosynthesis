@@ -13,7 +13,7 @@ var consts = {
 var app = express();
 app.use(cookie());
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({origin: true, credentials:true}));
 
 var games = {};
 var lobby = {};
@@ -22,9 +22,9 @@ var game, lobby, player, cookieEntry, gameCookie, playerCookie, name;
 
 app.listen(8000, () => { console.log("started"); });
 
-app.options(/.*/, function(req, res){
+app.options(/.*/, function (req, res) {
     res.set('content-type', '*/*');
-    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Origin', '');
     res.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
 });
 
@@ -157,7 +157,7 @@ app.delete('/finish', function (req, res) {
 function accessGame(nm, gc, pc, res, st, cc) {
     if (lobby[nm] !== undefined && (games[nm] !== undefined || st)) {
         if (cookies[nm].cookie == gc) {
-            if (cc!==undefined){
+            if (cc !== undefined) {
                 return cc;
             }
             for (apc in cookies[nm].players) {

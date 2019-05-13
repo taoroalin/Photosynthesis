@@ -6,20 +6,24 @@
 <head>
 
     <script src="api.js"></script>
+    <script src="game.js"></script>
 
     <script>
+        var game;
+        var api = apiFactory();
+
         document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("createGame").addEventListener("click", function (e) {
                 var name = document.getElementById("myGameName").value;
                 var username = document.getElementById("myUsername").value;
                 var players = document.getElementById("playerCount").value;
                 if (name && username && players) {
-                    post('add', { name: name, username: username, players: Number(players) }).then(response => { console.log("added"); console.log(response) });
+                    api.post('add', { name: name, username: username, players: Number(players) }).then(response => { console.log("added"); console.log(response) });
                 }
             });
 
             document.getElementById("refresh").addEventListener("click", function (e) {
-                get('games', false).then(response => {
+                api.get('games', false).then(response => {
                     if (response.error === undefined) {
                         var gameList = document.getElementById("lobbyGames");
                         gameList.innerHTML = "";
@@ -66,13 +70,28 @@
         function startGame(name){
             document.getElementById("lobby").display = "none";
             document.getElementById("GameDiv").display = "block";
-            // begin();
+            game = gameFactory(name, document.getElementById("game"));
         }
     </script>
 
     <style>
+        :root {
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
         #GameDiv {
             display: none;
+        }
+        
+        button {
+            background-color: #33ff33;
+            font: 18px "montserrat";
+            border-radius: 4px;
+            padding: 8px;
+            box-shadow: 0px;
+        }
+
+        h1 {
+            font: 24px "montserrat";
         }
     </style>
 
@@ -84,9 +103,9 @@
         <h1>Photosynthesis</h1>
         <p>An arboreal economics game</p>
         <button id="refresh">Refresh</button>
-        <input id="playerCount">
-        <input id="myUsername">
-        <input id="myGameName">
+        <input id="playerCount" placeholder="# of Players">
+        <input id="myUsername" placeholder="Username">
+        <input id="myGameName" placeholder="Game name">
         <button id="createGame">Create</button>
         <ul id="lobbyGames">
 
